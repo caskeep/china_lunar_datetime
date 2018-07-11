@@ -42,9 +42,11 @@ int main(int argc, char *argv[]) {
                   << "month:            " << chLunarDate.GetMonthOfYear() << std::endl
                   << "day of month:     " << chLunarDate.GetDayOfMonth() << std::endl
                   << "day of week:      " << chLunarDate.GetDayOfWeek() << std::endl
-                  << "hour of day:      " << civilSecond.hour() << std::endl
-                  << "minute of hour:   " << civilSecond.minute() << std::endl
-                  << "second of minute: " << civilSecond.second() << std::endl
+                  << "hour of day:      " << chLunarDate.GetHourOfDay() << std::endl
+                  << "minute of hour:   " << chLunarDate.GetMinuteOfHour() << std::endl
+                  << "second of minute: " << chLunarDate.GetSecondOfMinute() << std::endl
+                  << std::endl;
+        std::cout << "lunar value:      " << static_cast<int>(chLunarDate.GetLunarValue(2018)) << std::endl
                   << std::endl;
     }
     return 0;
