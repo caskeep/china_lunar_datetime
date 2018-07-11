@@ -9,27 +9,24 @@
 #include <chrono>
 
 
-class ChLunarDate
-{
+class ChLunarDate {
 public:
     ChLunarDate() = default;
+
     ~ChLunarDate() = default;
 
 public:
     int
-    GetYear() {return second_.year(); }
+    GetYear() { return second_.year(); }
 
     int
-    GetMonthOfYear() {return second_.month(); }
+    GetMonthOfYear() { return second_.month(); }
 
     int
     GetDayOfMonth() { return second_.day(); }
 
     int
-    GetDayOfWeek() {
-        cctz::civil_day day(second_);
-        static_cast<int>(cctz::get_weekday(day)) + 1;
-    }
+    GetDayOfWeek() { return static_cast<int>(cctz::get_weekday(cctz::civil_day(second_))) + 1; }
 
     int
     GetHourOfDay() { return second_.hour(); }
@@ -38,7 +35,7 @@ public:
     GetMinuteOfHour() { return second_.minute(); }
 
     int
-    GetSecondOfMinute() {return second_.second(); }
+    GetSecondOfMinute() { return second_.second(); }
 
 public: // TODO
     cctz::civil_second second_;
