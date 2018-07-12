@@ -39,8 +39,12 @@ public:
             0x0e968, 0x0d520, 0x0daa0, 0x16aa6, 0x056d0, 0x04ae0, 0x0a9d4, 0x0a2d0, 0x0d150, 0x0f252,//2090-2099
             0x0d520,                                                                                 //2100-2100
     };
+
     int START_WITH = 1900;
     int MAX_SIZE = 200;
+    unsigned int MASK_LUNAR_MONTH = 0xfff0;
+    unsigned int MASK_LUNAR_YEAR = 61440;
+    unsigned int MASK_LUNAR_LEAP = 15;
 
 public:
     int
@@ -72,6 +76,42 @@ public:
             return 0;
         }
         return LUNAR_INFO[year - START_WITH];
+    }
+
+    unsigned int
+    GetLunarValueMonth(const int year)
+    {
+        if(year > START_WITH + MAX_SIZE || year < START_WITH)
+        {
+            return 0;
+        }
+        auto nVal = LUNAR_INFO[year - START_WITH];
+        nVal = nVal & MASK_LUNAR_MONTH;
+        nVal = nVal >> 4;
+        return nVal;
+    }
+
+    int
+    GetLunarMonthDayCount()
+    {
+        auto year = second_.year();
+        if(year > START_WITH + MAX_SIZE || year < START_WITH)
+        {
+            return 0;
+        }
+        auto nVal = LUNAR_INFO[year - START_WITH];
+        nVal = nVal & MASK_LUNAR_MONTH;
+        auto monthOfYear = second_.month();
+        nVal = nVal >> (12 - monthOfYear);
+        nVal = nVal & 1;
+        if(nVal)
+        {
+            return 30;
+        }
+        else
+        {
+            return 29;
+        }
     }
 
 public: // TODO

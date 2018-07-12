@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 
     {
         std::cout << "## Class ChLunarDate Test." << std::endl;
-        cctz::civil_second civilSecond(2018, 7, 12, 10, 11, 25);
+        cctz::civil_second civilSecond(2018, 2, 12, 10, 11, 25);
         ChLunarDate        chLunarDate;
         chLunarDate.second_ = civilSecond;
         std::cout << "year:             " << chLunarDate.GetYear() << std::endl
@@ -47,6 +47,8 @@ int main(int argc, char *argv[]) {
                   << "second of minute: " << chLunarDate.GetSecondOfMinute() << std::endl
                   << std::endl;
         std::cout << "lunar value:      " << static_cast<int>(chLunarDate.GetLunarValue(2018)) << std::endl
+                  << "lunar month:      " << static_cast<int>(chLunarDate.GetLunarValueMonth(2018)) << std::endl
+                  << "lunar leap month: " << chLunarDate.GetLunarMonthDayCount() << std::endl
                   << std::endl;
     }
     return 0;
