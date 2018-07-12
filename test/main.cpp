@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
         std::cout << "civil day year: " << civilDay.year() << " month: " << civilDay.month() << " day of month: "
                   << civilDay.day() << " day of week: " << dayOfWeek << std::endl;
 
-        cctz::civil_second civilSecond(2018, 7, 12, 10, 11, 25);
+        cctz::civil_second civilSecond(2018, 7, 11, 10, 11, 25);
         const auto         dayOfWeek2 = static_cast<int>(cctz::get_weekday(civilDay));
 
         std::cout << "civil second year: " << civilSecond.year() << " month: " << civilSecond.month()
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 
     {
         std::cout << "## Class ChLunarDate Test." << std::endl;
-        cctz::civil_second civilSecond(2018, 2, 12, 10, 11, 25);
+        cctz::civil_second civilSecond(2018, 12, 12, 10, 11, 25);
         ChLunarDate        chLunarDate;
         chLunarDate.second_ = civilSecond;
         std::cout << "year:             " << chLunarDate.GetYear() << std::endl

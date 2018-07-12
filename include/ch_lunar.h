@@ -101,6 +101,8 @@ public:
         }
         auto nVal = LUNAR_INFO[year - START_WITH];
         nVal = nVal & MASK_LUNAR_MONTH;
+        nVal = nVal >> 4;
+        auto tmp = nVal;
         auto monthOfYear = second_.month();
         nVal = nVal >> (12 - monthOfYear);
         nVal = nVal & 1;
