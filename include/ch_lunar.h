@@ -12,6 +12,36 @@
 #include <array>
 #include <map>
 
+struct CGDateTime {
+    int m_nGYear           = 0;
+    int m_nGMonthOfYear    = 0;
+    int m_nGDayOfMonth     = 0;
+    int m_nGDayOfWeek      = 0;
+    int m_nGHourOfDay      = 0;
+    int m_nGMinuteOfHour   = 0;
+    int m_nGSecondOfMinute = 0;
+    int m_nGMilliOfSecond  = 0;
+
+    std::string
+    ToString() {
+        std::string str;
+        str += "year[";
+        str += std::to_string(m_nGYear) + "] ";
+        str += "dayOfMonth[";
+        str += std::to_string(m_nGMonthOfYear) + "] ";
+        str += "dayOfWeek[";
+        str += std::to_string(m_nGDayOfWeek) + "] ";
+        str += "hourOfDay[";
+        str += std::to_string(m_nGHourOfDay) + "] \n";
+        str += "minuteOfHour[";
+        str += std::to_string(m_nGMinuteOfHour) + "] ";
+        str += "secondOfMinute[";
+        str += std::to_string(m_nGSecondOfMinute) + "] ";
+        str += "milliOfSecond[";
+        str += std::to_string(m_nGMilliOfSecond) + "] \n";
+    }
+};
+
 class ChLunarDate {
 public:
     ChLunarDate() = default;
@@ -191,6 +221,30 @@ public:
         return tupRes;
     }
 
+    CGDateTime
+    GetGDataTime() {
+        CGDateTime oGDateTime;
+        auto       it = m_mapGday2YM.upper_bound(m_nTimeIndex);
+        if (it == m_mapGday2YM.end() || it == m_mapGday2YM.begin()) {
+            return oGDateTime;
+        }
+        --it;
+        const auto &tupGYM = it->second;
+        oGDateTime.m_nGYear        = std::get<0>(tupGYM);
+        oGDateTime.m_nGMonthOfYear = std::get<1>(tupGYM);
+        auto nRemainderMilliSecondDays = (m_nTimeIndex - it->first);
+        oGDateTime.m_nGDayOfMonth  = nRemainderMilliSecondDays / s_nMilliSecondIn1Day + 1;
+        const auto nRemainderMilliSecondHours = nRemainderMilliSecondDays % s_nMilliSecondIn1Day;
+        oGDateTime.m_nGHourOfDay = nRemainderMilliSecondHours / s_nMilliSecondIn1Hour;
+        const auto nRemainderMilliSecondMinutes = nRemainderMilliSecondHours % s_nMilliSecondIn1Hour;
+        oGDateTime.m_nGMinuteOfHour = nRemainderMilliSecondMinutes / s_nMilliSecondIn1Minute;
+        const auto nRemainderMilliSecondSeconds = nRemainderMilliSecondMinutes % s_nMilliSecondIn1Minute;
+        oGDateTime.m_nGSecondOfMinute = nRemainderMilliSecondSeconds / s_nMilliSecondIn1Minute;
+        oGDateTime.m_nGMilliOfSecond = nRemainderMilliSecondSeconds % s_nMilliSecondIn1Minute;
+        oGDateTime.m_nGDayOfWeek   = (m_nTimeIndex / s_nMilliSecondIn1Day + 7 - s_nGDayOfWeek) % 7;
+        return oGDateTime;
+    }
+
     void
     DebugPrintYMD(const TYMD &tup) {
         std::cout << "TYMD year[" << std::get<0>(tup) << "] month[" << std::get<1>(tup) << "] day[" << std::get<2>(tup)
@@ -205,16 +259,26 @@ public:
 
 public: // TODO
     cctz::civil_second                                  second_;
-    unsigned long long                                  miliseconds_;
+    unsigned long long                                  m_nTimeIndex;
     std::map<unsigned long long, std::tuple<int, int> > m_mapGday2YM;
 
     static constexpr int s_nGYear       = 2018;
     static constexpr int s_nGMonth      = 6;
     static constexpr int s_nGDayOfMonth = 30;
+    static constexpr int s_nGDayOfWeek  = 6;
 
     static constexpr int s_nLYear      = 0;
     static constexpr int s_nLMonth     = 0;
     static constexpr int s_nLDayOfMont = 0;
+
+    static constexpr int s_nMilliSecondIn1Second = 1000;
+    static constexpr int s_nSecondIn1Minute      = 60;
+    static constexpr int s_nMinuteIn1Hour        = 60;
+    static constexpr int s_nHourIn1Day           = 24;
+
+    static constexpr int s_nMilliSecondIn1Minute = s_nMilliSecondIn1Second * s_nSecondIn1Minute;
+    static constexpr int s_nMilliSecondIn1Hour = s_nMilliSecondIn1Minute * s_nMinuteIn1Hour;
+    static constexpr int s_nMilliSecondIn1Day  = s_nMilliSecondIn1Hour * s_nHourIn1Day;
 };
 
 
