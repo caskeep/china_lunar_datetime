@@ -23,12 +23,14 @@ struct CGDateTime {
     int m_nGMilliOfSecond  = 0;
 
     std::string
-    ToString() {
+    ToString() const {
         std::string str;
         str += "year[";
         str += std::to_string(m_nGYear) + "] ";
-        str += "dayOfMonth[";
+        str += "monthOfYear[";
         str += std::to_string(m_nGMonthOfYear) + "] ";
+        str += "dayOfMonth[";
+        str += std::to_string(m_nGDayOfMonth) + "] ";
         str += "dayOfWeek[";
         str += std::to_string(m_nGDayOfWeek) + "] ";
         str += "hourOfDay[";
@@ -39,6 +41,7 @@ struct CGDateTime {
         str += std::to_string(m_nGSecondOfMinute) + "] ";
         str += "milliOfSecond[";
         str += std::to_string(m_nGMilliOfSecond) + "] \n";
+        return str;
     }
 };
 
@@ -149,8 +152,9 @@ public:
         int                nGDayOfMonth  = s_nGDayOfMonth;
         int                nGYear        = s_nGYear;
         nGMonthDayMax = GetGMonthMaxDay(nGMonthOfYear, nGYear);
-        while (nIndex < 700) {
-            ++nIndex;
+        const unsigned long long nMaxMilli = static_cast<unsigned long long>(s_nMilliSecondIn1Day) * 700u;
+        while (nIndex < nMaxMilli) {
+            nIndex += s_nMilliSecondIn1Day;
             ++nGDayOfMonth;
             if (nGDayOfMonth > nGMonthDayMax) {
                 nGDayOfMonth = 1;
@@ -222,7 +226,7 @@ public:
     }
 
     CGDateTime
-    GetGDataTime() {
+    GetGDateTime() {
         CGDateTime oGDateTime;
         auto       it = m_mapGday2YM.upper_bound(m_nTimeIndex);
         if (it == m_mapGday2YM.end() || it == m_mapGday2YM.begin()) {
@@ -241,8 +245,14 @@ public:
         const auto nRemainderMilliSecondSeconds = nRemainderMilliSecondMinutes % s_nMilliSecondIn1Minute;
         oGDateTime.m_nGSecondOfMinute = nRemainderMilliSecondSeconds / s_nMilliSecondIn1Minute;
         oGDateTime.m_nGMilliOfSecond = nRemainderMilliSecondSeconds % s_nMilliSecondIn1Minute;
-        oGDateTime.m_nGDayOfWeek   = (m_nTimeIndex / s_nMilliSecondIn1Day + 7 - s_nGDayOfWeek) % 7;
+        auto tmp1 = m_nTimeIndex / s_nMilliSecondIn1Day;
+        oGDateTime.m_nGDayOfWeek   = (m_nTimeIndex / s_nMilliSecondIn1Day + s_nGDayOfWeek) % 7;
         return oGDateTime;
+    }
+
+    void
+    SetVal(unsigned long long nVal) {
+        m_nTimeIndex = nVal;
     }
 
     void

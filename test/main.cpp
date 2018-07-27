@@ -56,8 +56,13 @@ int main(int argc, char *argv[]) {
         ChLunarDate        chLunarDate;
         chLunarDate.BuildGMap();
         chLunarDate.DebugPrintBuildMap();
-        auto tup1 = chLunarDate.GetYMD(602);
-        chLunarDate.DebugPrintYMD(tup1);
+//        auto tup1 = chLunarDate.GetYMD(86400001);
+//        chLunarDate.DebugPrintYMD(tup1);
+        unsigned long long tmp = 86400000u * 30u + 1u;
+        chLunarDate.SetVal(tmp);
+        const auto oGDateTime = chLunarDate.GetGDateTime();
+        const auto strDateTime = oGDateTime.ToString();
+        std::cout << "tostring: " << strDateTime;
     }
     return 0;
 }
