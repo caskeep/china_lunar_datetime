@@ -159,6 +159,7 @@ public:
             if (nGDayOfMonth > nGMonthDayMax) {
                 nGDayOfMonth = 1;
                 ++nGMonthOfYear;
+                nGMonthDayMax = GetGMonthMaxDay(nGMonthOfYear, nGYear);
                 if (nGMonthOfYear > 12) {
                     nGMonthOfYear = 1;
                     ++nGYear;
@@ -228,7 +229,7 @@ public:
     CGDateTime
     GetGDateTime() {
         CGDateTime oGDateTime;
-        auto       it = m_mapGday2YM.upper_bound(m_nTimeIndex);
+        auto       it = m_mapGday2YM.lower_bound(m_nTimeIndex);
         if (it == m_mapGday2YM.end() || it == m_mapGday2YM.begin()) {
             return oGDateTime;
         }
