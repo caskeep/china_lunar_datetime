@@ -6,9 +6,11 @@
 #define CHINA_LUNAR_DATETIME_CH_LUNAR_H
 
 #include "cctz/civil_time.h"
+#include <iostream>
 #include <chrono>
 #include <vector>
 #include <array>
+#include <map>
 
 class ChLunarDate {
 public:
@@ -16,7 +18,7 @@ public:
 
     ~ChLunarDate() = default;
 
-    std::vector<unsigned int> LUNAR_INFO {
+    std::vector<unsigned int> LUNAR_INFO{
             0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2,//1900-1909
             0x04ae0, 0x0a5b6, 0x0a4d0, 0x0d250, 0x1d255, 0x0b540, 0x0d6a0, 0x0ada2, 0x095b0, 0x14977,//1910-1919
             0x04970, 0x0a4b0, 0x0b4b5, 0x06a50, 0x06d40, 0x1ab54, 0x02b60, 0x09570, 0x052f2, 0x04970,//1920-1929
@@ -40,13 +42,15 @@ public:
             0x0d520,                                                                                 //2100-2100
     };
 
-    int START_WITH = 1900;
-    int MAX_SIZE = 200;
+    int          START_WITH       = 1900;
+    int          MAX_SIZE         = 200;
     unsigned int MASK_LUNAR_MONTH = 0xfff0;
-    unsigned int MASK_LUNAR_YEAR = 61440;
-    unsigned int MASK_LUNAR_LEAP = 15;
+    unsigned int MASK_LUNAR_YEAR  = 61440;
+    unsigned int MASK_LUNAR_LEAP  = 15;
 
 public:
+    using TYMD = std::tuple<int, int, int>;
+
     int
     GetYear() { return second_.year(); }
 
@@ -69,20 +73,16 @@ public:
     GetSecondOfMinute() { return second_.second(); }
 
     unsigned int
-    GetLunarValue(const int year)
-    {
-        if(year > START_WITH + MAX_SIZE || year < START_WITH)
-        {
+    GetLunarValue(const int year) {
+        if (year > START_WITH + MAX_SIZE || year < START_WITH) {
             return 0;
         }
         return LUNAR_INFO[year - START_WITH];
     }
 
     unsigned int
-    GetLunarValueMonth(const int year)
-    {
-        if(year > START_WITH + MAX_SIZE || year < START_WITH)
-        {
+    GetLunarValueMonth(const int year) {
+        if (year > START_WITH + MAX_SIZE || year < START_WITH) {
             return 0;
         }
         auto nVal = LUNAR_INFO[year - START_WITH];
@@ -92,32 +92,129 @@ public:
     }
 
     int
-    GetLunarMonthDayCount()
-    {
+    GetLunarMonthDayCount() {
         auto year = second_.year();
-        if(year > START_WITH + MAX_SIZE || year < START_WITH)
-        {
+        if (year > START_WITH + MAX_SIZE || year < START_WITH) {
             return 0;
         }
         auto nVal = LUNAR_INFO[year - START_WITH];
         nVal = nVal & MASK_LUNAR_MONTH;
         nVal = nVal >> 4;
-        auto tmp = nVal;
+        auto tmp         = nVal;
         auto monthOfYear = second_.month();
         nVal = nVal >> (12 - monthOfYear);
         nVal = nVal & 1;
-        if(nVal)
-        {
+        if (nVal) {
             return 30;
-        }
-        else
-        {
+        } else {
             return 29;
         }
     }
 
+    int
+    BuildGMap() {
+        unsigned long long nIndex        = 0;
+        int                nGMonthDayMax = 0;
+        int                nGMonthOfYear = s_nGMonth;
+        int                nGDayOfMonth  = s_nGDayOfMonth;
+        int                nGYear        = s_nGYear;
+        nGMonthDayMax = GetGMonthMaxDay(nGMonthOfYear, nGYear);
+        while (nIndex < 700) {
+            ++nIndex;
+            ++nGDayOfMonth;
+            if (nGDayOfMonth > nGMonthDayMax) {
+                nGDayOfMonth = 1;
+                ++nGMonthOfYear;
+                if (nGMonthOfYear > 12) {
+                    nGMonthOfYear = 1;
+                    ++nGYear;
+                }
+                m_mapGday2YM[nIndex] = std::make_tuple(nGYear, nGMonthOfYear);
+            }
+        }
+    }
+
+    void
+    DebugPrintBuildMap() {
+        for (const auto &pair : m_mapGday2YM) {
+            auto &nIndex = pair.first;
+            auto &tupYM  = pair.second;
+            auto nGYear  = std::get<0>(tupYM);
+            auto nGMonth = std::get<1>(tupYM);
+            std::cout << "index[" << nIndex << "] year,month[" << nGYear << "," << nGMonth << "]" << std::endl;
+        }
+    }
+
+    int
+    GetGMonthMaxDay(int nGMonth, int nGYear) {
+        if (nGMonth == 1 || nGMonth == 3 || nGMonth == 5 || nGMonth == 7 || nGMonth == 8 || nGMonth == 10 ||
+            nGMonth == 12) {
+            return 31;
+        } else {
+            if (nGMonth == 2 && IsLeapGYear(nGYear)) {
+                return 29;
+            }
+            return 30;
+        }
+    }
+
+    bool
+    IsLeapGYear(int nYear) {
+        if (nYear % 400 == 0) {
+            return true;
+        }
+        if (nYear % 100 == 0) {
+            return false;
+        }
+        if (nYear % 4 == 0) {
+            return true;
+        }
+        return false;
+    }
+
+    TYMD
+    GetYMD(unsigned long long nIndex) {
+        TYMD tupRes;
+        auto it = m_mapGday2YM.upper_bound(nIndex);
+        if (it == m_mapGday2YM.end()) {
+            return std::make_tuple(std::numeric_limits<int>::max(), std::numeric_limits<int>::max(),
+                                   std::numeric_limits<int>::max());
+        }
+        if (it == m_mapGday2YM.begin()) {
+            return std::make_tuple(0, 0, 0);
+        }
+        --it;
+        const auto &tupGYM = it->second;
+        std::get<0>(tupRes) = std::get<0>(tupGYM);
+        std::get<1>(tupRes) = std::get<1>(tupGYM);
+        std::get<2>(tupRes) = nIndex - it->first + 1;
+        return tupRes;
+    }
+
+    void
+    DebugPrintYMD(const TYMD &tup) {
+        std::cout << "TYMD year[" << std::get<0>(tup) << "] month[" << std::get<1>(tup) << "] day[" << std::get<2>(tup)
+                  << "].";
+    }
+
+    void
+    DebugPrintYM(const std::tuple<int, int> &tup) {
+        std::cout << "TYMD year[" << std::get<0>(tup) << "] month[" << std::get<1>(tup) << "] day.";
+    }
+
+
 public: // TODO
-    cctz::civil_second second_;
+    cctz::civil_second                                  second_;
+    unsigned long long                                  miliseconds_;
+    std::map<unsigned long long, std::tuple<int, int> > m_mapGday2YM;
+
+    static constexpr int s_nGYear       = 2018;
+    static constexpr int s_nGMonth      = 6;
+    static constexpr int s_nGDayOfMonth = 30;
+
+    static constexpr int s_nLYear      = 0;
+    static constexpr int s_nLMonth     = 0;
+    static constexpr int s_nLDayOfMont = 0;
 };
 
 

@@ -3,7 +3,6 @@
 //
 
 #include "ch_lunar.h"
-#include <iostream>
 
 int main(int argc, char *argv[]) {
     {
@@ -50,6 +49,15 @@ int main(int argc, char *argv[]) {
                   << "lunar month:      " << static_cast<int>(chLunarDate.GetLunarValueMonth(2018)) << std::endl
                   << "lunar leap month: " << chLunarDate.GetLunarMonthDayCount() << std::endl
                   << std::endl;
+    }
+
+    {
+        std::cout << "## Class ChLunarDate Test build map." << std::endl;
+        ChLunarDate        chLunarDate;
+        chLunarDate.BuildGMap();
+        chLunarDate.DebugPrintBuildMap();
+        auto tup1 = chLunarDate.GetYMD(602);
+        chLunarDate.DebugPrintYMD(tup1);
     }
     return 0;
 }
