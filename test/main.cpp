@@ -37,18 +37,21 @@ main(int argc, char* argv[])
     {
         std::cout << "## Class ChLunarDate Test build map." << std::endl;
 
-        ChLunarDate::BuildGMap();
-        ChLunarDate::DebugPrintBuildGMap();
+        ChLunarDate::Init();
+        ChLunarDate::DebugPrintBuildAllMap();
         //        auto tup1 = chLunarDate.GetYMD(86400001);
         //        chLunarDate.DebugPrintYMD(tup1);
-        const auto tmp = static_cast<unsigned long long>(86400000u) * static_cast<unsigned long long>(600u) +
+        const auto tmp = static_cast<unsigned long long>(86400000u) * static_cast<unsigned long long>(13u) +
                          static_cast<unsigned long long>(1u);
         //        unsigned long long tmp = 2678400001;
         ChLunarDate chLunarDate(tmp);
         //chLunarDate.SetVal(tmp);
         const auto oGDateTime = chLunarDate.GetGDateTime();
-        const auto strDateTime = oGDateTime.ToString();
-        std::cout << "tostring: " << strDateTime;
+        const auto strGDateTime = oGDateTime.ToString();
+        std::cout << "tostring: " << strGDateTime;
+        const auto oLDateTime = chLunarDate.GetLDateTime();
+        const auto strLDateTime = oLDateTime.ToString();
+        std::cout << "tostring: " << strLDateTime;
     }
     return 0;
 }
