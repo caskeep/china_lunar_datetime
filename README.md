@@ -1,2 +1,4 @@
 # China Lunar Datetime
-imp using google cctz datetime and some other algorithms to achieve chinese lunar calendar and datetime;
+using c++11;
+using pre build data to speed up the search;
+using map (r-b tree) as static search data;
