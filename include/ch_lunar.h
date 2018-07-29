@@ -13,14 +13,15 @@
 
 struct CGDateTime
 {
-    int m_nGYear = 0;
-    int m_nGMonthOfYear = 0;
-    int m_nGDayOfMonth = 0;
-    int m_nGDayOfWeek = 0;
-    int m_nGHourOfDay = 0;
-    int m_nGMinuteOfHour = 0;
-    int m_nGSecondOfMinute = 0;
-    int m_nGMilliOfSecond = 0;
+    int                m_nGYear = 0;
+    int                m_nGMonthOfYear = 0;
+    int                m_nGDayOfMonth = 0;
+    int                m_nGDayOfWeek = 0;
+    int                m_nGHourOfDay = 0;
+    int                m_nGMinuteOfHour = 0;
+    int                m_nGSecondOfMinute = 0;
+    int                m_nGMilliOfSecond = 0;
+    unsigned long long m_nVal = std::numeric_limits<unsigned long long>::max();
 
     std::string
     ToString() const
@@ -48,9 +49,10 @@ struct CGDateTime
 
 struct CLDateTime
 {
-    int m_nLYear = 0;
-    int m_nLMonthOfYear = 0;
-    int m_nLDayOfMonth = 0;
+    int                m_nLYear = 0;
+    int                m_nLMonthOfYear = 0;
+    int                m_nLDayOfMonth = 0;
+    unsigned long long m_nVal = std::numeric_limits<unsigned long long>::max();
 
     std::string
     ToString() const
@@ -84,7 +86,7 @@ public:
     constexpr static unsigned int
     GetLVal(const int nGYear)
     {
-        if (nGYear > 200 + s_nMinYear || nGYear < s_nMinYear)
+        if (nGYear > 200 + s_nMinGYear || nGYear < s_nMinGYear)
         {
             return 0u;
         }
@@ -111,7 +113,7 @@ public:
             0x0e968, 0x0d520, 0x0daa0, 0x16aa6, 0x056d0, 0x04ae0, 0x0a9d4, 0x0a2d0, 0x0d150, 0x0f252, //2090-2099
             0x0d520,                                                                                  //2100-2100
         };
-        return val[nGYear - s_nMinYear];
+        return val[nGYear - s_nMinGYear];
     }
 
     static void
@@ -119,6 +121,8 @@ public:
     {
         BuildGMap();
         BuildLMap();
+        BuildInverseGMap();
+        BuildInverseLMap();
     }
 
     static void
@@ -209,6 +213,28 @@ public:
         }
     }
 
+    static void
+    BuildInverseGMap()
+    {
+        for (const auto& pair : s_mapGday2Ym)
+        {
+            const auto& tupGYM = pair.second;
+            const auto  nIndexNew = std::get<0>(tupGYM) * 100 + std::get<1>(tupGYM);
+            s_mapGYM2Day[nIndexNew] = pair.first;
+        }
+    }
+
+    static void
+    BuildInverseLMap()
+    {
+        for (const auto& pair : s_mapLday2Ym)
+        {
+            const auto& tupGYM = pair.second;
+            const auto  nIndexNew = std::get<0>(tupGYM) * 100 + std::get<1>(tupGYM);
+            s_mapLYM2Day[nIndexNew] = pair.first;
+        }
+    }
+
     static int
     GetGMonthMaxDay(const int nGMonth, const int nGYear)
     {
@@ -229,7 +255,7 @@ public:
     {
         std::map<int, int> mapLMonth2DayCount;
         unsigned           nLVal = 0;
-        if (nLYear > s_nMaxYear || nLYear < s_nMinYear)
+        if (nLYear > s_nMaxGYear || nLYear < s_nMinGYear)
         {
             return mapLMonth2DayCount;
         }
@@ -290,7 +316,8 @@ public:
     GetGDateTime() const
     {
         CGDateTime oGDateTime;
-        auto       it = s_mapGday2Ym.lower_bound(m_nTimeIndex);
+        oGDateTime.m_nVal = m_nTimeIndex;
+        auto it = s_mapGday2Ym.lower_bound(m_nTimeIndex);
         if (it == s_mapGday2Ym.end() || it == s_mapGday2Ym.begin())
         {
             return oGDateTime;
@@ -316,7 +343,8 @@ public:
     GetLDateTime() const
     {
         CLDateTime oLDateTime;
-        auto       it = s_mapLday2Ym.lower_bound(m_nTimeIndex);
+        oLDateTime.m_nVal = m_nTimeIndex;
+        auto it = s_mapLday2Ym.lower_bound(m_nTimeIndex);
         if (it == s_mapLday2Ym.end() || it == s_mapLday2Ym.begin())
         {
             return oLDateTime;
@@ -336,33 +364,126 @@ public:
         m_nTimeIndex = nVal;
     }
 
-    static void
-    DebugPrintBuildAllMap()
+    bool
+    SetVal(const CGDateTime& oGDateTime)
     {
+        if (!CheckGDateTimeValid(oGDateTime))
+        {
+            return false;
+        }
+        const auto it = s_mapGYM2Day.find(oGDateTime.m_nGYear * 100 + oGDateTime.m_nGMonthOfYear);
+        if (it == s_mapGYM2Day.end())
+        {
+            return false;
+        }
+        auto nIndex = it->second;
+        nIndex += static_cast<unsigned long long>(oGDateTime.m_nGDayOfMonth * s_nMilliSecondIn1Day) + static_cast<
+                unsigned long long>(oGDateTime.m_nGHourOfDay * s_nMilliSecondIn1Hour) +
+            static_cast<unsigned long long>(oGDateTime.m_nGMinuteOfHour * s_nMilliSecondIn1Hour) + static_cast<unsigned
+                long long>(oGDateTime.m_nGMinuteOfHour * s_nMilliSecondIn1Minute)
+            + static_cast<unsigned long long>(oGDateTime.m_nGMilliOfSecond);
+        SetVal(nIndex);
+        return true;
+    }
+
+    bool
+    SetVal(const CLDateTime& oLDateTIme)
+    {
+        //const auto it = s_mapGYM2Day.find(oLDateTIme.m_nGYear * 100 + oLDateTIme.m_nGMonthOfYear);
+        //if (it == s_mapGYM2Day.end())
+        //{
+        //	return false;
+        //}
+        //auto nIndex = it->second;
+        //nIndex += static_cast<unsigned long long>(oLDateTIme.m_nGDayOfMonth * s_nMilliSecondIn1Day) + static_cast<
+        //	unsigned long long>(oLDateTIme.m_nGHourOfDay * s_nMilliSecondIn1Hour) +
+        //	static_cast<unsigned long long>(oLDateTIme.m_nGMinuteOfHour * s_nMilliSecondIn1Hour) + static_cast<unsigned
+        //	long long>(oLDateTIme.m_nGMinuteOfHour * s_nMilliSecondIn1Minute)
+        //	+ static_cast<unsigned long long>(oLDateTIme.m_nGMilliOfSecond);
+        //SetVal(nIndex);
+        return true;
+    }
+
+    static std::string
+    DebugToString()
+    {
+        std::string str;
+        str += "s_mapGday2Ym \n";
         for (const auto& pair : s_mapGday2Ym)
         {
             auto&      nIndex = pair.first;
             auto&      tupYm = pair.second;
             const auto nGYear = std::get<0>(tupYm);
             const auto nGMonth = std::get<1>(tupYm);
-            std::cout << "index[" << nIndex << "] gyear,gmonth[" << nGYear << "," << nGMonth << "]" << std::endl;
+            str += "index[" + std::to_string(nIndex) + "] gyear,gmonth[" + std::to_string(nGYear) + "," + std::
+                to_string(nGMonth) + "]" + "\n";
         }
+        str += "s_mapLday2Ym \n";
         for (const auto& pair : s_mapLday2Ym)
         {
             auto&      nIndex = pair.first;
             auto&      tupYm = pair.second;
             const auto nGYear = std::get<0>(tupYm);
             const auto nGMonth = std::get<1>(tupYm);
-            std::cout << "index[" << nIndex << "] lyear,lmonth[" << nGYear << "," << nGMonth << "]" << std::endl;
+            str += "index[" + std::to_string(nIndex) + "] lyear,lmonth[" + std::to_string(nGYear) + "," + std::
+                to_string(nGMonth) + "]" + "\n";
         }
+        str += "s_mapGYM2Day \n";
+        for (const auto& pair : s_mapGYM2Day)
+        {
+            str += "index[" + std::to_string(pair.first) + "] inverse index[" + std::to_string(pair.second) + "]\n";
+        }
+        str += "s_mapLYM2Day \n";
+        for (const auto& pair : s_mapLYM2Day)
+        {
+            str += "index[" + std::to_string(pair.first) + "] inverse index[" + std::to_string(pair.second) + "]\n";
+        }
+        return str;
+    }
+
+    static bool
+    CheckGDateTimeValid(const CGDateTime& oGDateTime)
+    {
+        if (oGDateTime.m_nGYear > s_nMaxGYear || oGDateTime.m_nGYear < s_nMinGYear)
+        {
+            return false;
+        }
+        if (oGDateTime.m_nGMonthOfYear < 1 || oGDateTime.m_nGMonthOfYear > s_nMonthIn1GYear)
+        {
+            return false;
+        }
+        if (oGDateTime.m_nGDayOfMonth < 1 || oGDateTime.m_nGDayOfMonth > GetGMonthMaxDay(oGDateTime.m_nGMonthOfYear,
+                                                                                         oGDateTime.m_nGYear))
+        {
+            return false;
+        }
+        if (oGDateTime.m_nGHourOfDay < 0 || oGDateTime.m_nGHourOfDay > s_nHourIn1Day)
+        {
+            return false;
+        }
+        if (oGDateTime.m_nGMinuteOfHour < 0 || oGDateTime.m_nGMinuteOfHour > s_nMinuteIn1Hour)
+        {
+            return false;
+        }
+        if (oGDateTime.m_nGSecondOfMinute < 0 || oGDateTime.m_nGSecondOfMinute > s_nSecondIn1Minute)
+        {
+            return false;
+        }
+        if (oGDateTime.m_nGMilliOfSecond < 0 || oGDateTime.m_nGMilliOfSecond > s_nMilliSecondIn1Second)
+        {
+            return false;
+        }
+        return true;
     }
 
 
-public: // TODO
+public:
     unsigned long long m_nTimeIndex = 0;
 
     static std::map<unsigned long long, std::tuple<int, int>> s_mapGday2Ym;
     static std::map<unsigned long long, std::tuple<int, int>> s_mapLday2Ym;
+    static std::map<int, unsigned long long>                  s_mapGYM2Day;
+    static std::map<int, unsigned long long>                  s_mapLYM2Day;
 
     static constexpr int s_nGYear = 2018;
     static constexpr int s_nGMonth = 6;
@@ -377,14 +498,17 @@ public: // TODO
     static constexpr int s_nSecondIn1Minute = 60;
     static constexpr int s_nMinuteIn1Hour = 60;
     static constexpr int s_nHourIn1Day = 24;
+    static constexpr int s_nMonthIn1GYear = 12;
 
     static constexpr int s_nMilliSecondIn1Minute = s_nMilliSecondIn1Second * s_nSecondIn1Minute;
     static constexpr int s_nMilliSecondIn1Hour = s_nMilliSecondIn1Minute * s_nMinuteIn1Hour;
     static constexpr int s_nMilliSecondIn1Day = s_nMilliSecondIn1Hour * s_nHourIn1Day;
 
-    static constexpr int s_nMinYear = 1900;
-    static constexpr int s_nMaxYear = 2100;
+    static constexpr int s_nMinGYear = 1900;
+    static constexpr int s_nMaxGYear = 2100;
 };
 
 std::map<unsigned long long, std::tuple<int, int>> ChLunarDate::s_mapGday2Ym;
 std::map<unsigned long long, std::tuple<int, int>> ChLunarDate::s_mapLday2Ym;
+std::map<int, unsigned long long>                  ChLunarDate::s_mapGYM2Day;
+std::map<int, unsigned long long>                  ChLunarDate::s_mapLYM2Day;
