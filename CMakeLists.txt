@@ -8,20 +8,16 @@ else()
     set(CMAKE_CXX_EXTENSIONS OFF)
 endif()
 
-
 project(china_lunar_datetime)
 
-add_subdirectory(third_party)
-#add_subdirectory(src)
-add_subdirectory(test)
 
-add_library(${PROJECT_NAME}
-        src/ch_lunar.cpp)
-
-add_library(lib::ch_lunar
-        ALIAS
-        ${PROJECT_NAME})
+add_library(${PROJECT_NAME} INTERFACE)
+add_library(lib::ch_lunar ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
-        PUBLIC
-        ${PROJECT_SOURCE_DIR}/include)
+    INTERFACE
+        ${PROJECT_SOURCE_DIR}/include
+)
+
+add_executable(test test/main.cpp)
+target_link_libraries(test lib::ch_lunar)
