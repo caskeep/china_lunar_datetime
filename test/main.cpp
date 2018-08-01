@@ -14,7 +14,8 @@ main(int argc, char* argv[])
     const auto tmp = static_cast<unsigned long long>(86400000u) * static_cast<unsigned long long>(13u) +
                      static_cast<unsigned long long>(1u);
     CChLunarDateTime chLunarDate1;
-    chLunarDate1.Set(1970, 2, 28);
+    chLunarDate1.Set(1971, 2, 1);
+    //chLunarDate1.Set(2018, 8, 1);
     std::cout << "tostring: " << chLunarDate1.GDateTimeToString();
     std::cout << "tostring: " << chLunarDate1.LDateTimeToString();
 

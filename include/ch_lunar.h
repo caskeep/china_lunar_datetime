@@ -350,11 +350,17 @@ public:
             return false;
         }
         m_nTimeIndex = it->second;
-        m_nTimeIndex += static_cast<unsigned long long>((m_nGDayOfMonth - 1) * s_nMilliSecondIn1Day) + static_cast<
-                unsigned long long>(m_nHourOfDay * s_nMilliSecondIn1Hour) +
-                        static_cast<unsigned long long>(m_nMinuteOfHour * s_nMilliSecondIn1Hour) + static_cast<unsigned
-        long long>(m_nMinuteOfHour * s_nMilliSecondIn1Minute)
-                        + static_cast<unsigned long long>(m_nMilliOfSecond);
+        m_nTimeIndex += static_cast<unsigned long long>(m_nGDayOfMonth - 1) * s_nMilliSecondIn1Day;
+        m_nTimeIndex += static_cast<unsigned long long>(m_nHourOfDay) * static_cast<unsigned long long>(s_nMilliSecondIn1Hour);
+        m_nTimeIndex += static_cast<unsigned long long>(m_nMinuteOfHour) * static_cast<unsigned long long>(s_nMilliSecondIn1Hour);
+        m_nTimeIndex += static_cast<unsigned long long>(m_nSecondOfMinute) * static_cast<unsigned long long>(s_nMilliSecondIn1Minute);
+        m_nTimeIndex += static_cast<unsigned long long>(m_nMilliOfSecond);
+
+//        m_nTimeIndex += static_cast<unsigned long long>((m_nGDayOfMonth - 1) * s_nMilliSecondIn1Day)
+//                        + static_cast<unsigned long long>(m_nHourOfDay * s_nMilliSecondIn1Hour)
+//                        + static_cast<unsigned long long>(m_nMinuteOfHour * s_nMilliSecondIn1Hour)
+//                        + static_cast<unsigned long long>(m_nMinuteOfHour * s_nMilliSecondIn1Minute)
+//                        + static_cast<unsigned long long>(m_nMilliOfSecond);
         return true;
     }
 
