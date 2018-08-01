@@ -11,46 +11,94 @@
 #include <map>
 #include <string>
 
-class ChLunarDate
+class CChLunarDateTime
 {
 public:
-    ChLunarDate() = default;
+    CChLunarDateTime() = default;
 
     explicit
-    ChLunarDate(const unsigned long long nVal)
+    CChLunarDateTime(const unsigned long long nVal)
     {
         m_nTimeIndex = nVal;
 		CalGDateTime();
 		CalLDateTime();
     }
 
-    ChLunarDate(const int nGYear, const int nGMonthOfYear, const int nGDayOfMonth)
-    {
-        m_nGYear = nGYear;
-        m_nGMonthOfYear = nGMonthOfYear;
-        m_nGDayOfMonth = nGDayOfMonth;
-    }
+    //CChLunarDateTime(const int nGYear, const int nGMonthOfYear, const int nGDayOfMonth)
+    //{
+    //    m_nGYear = nGYear;
+    //    m_nGMonthOfYear = nGMonthOfYear;
+    //    m_nGDayOfMonth = nGDayOfMonth;
+    //}
 
-    ChLunarDate(const int nGYear,
-                const int nGMonthOfYear,
-                const int nGDayOfMonth,
-                const int nGHourOfDay,
-                const int nGMinuteOfHour,
-                const int nGSecondOfMinute,
-                const int nGMilliOfSecond)
-    {
-        m_nGYear = nGYear;
-        m_nGMonthOfYear = nGMonthOfYear;
-        m_nGDayOfMonth = nGDayOfMonth;
-        m_nGHourOfDay = nGHourOfDay;
-        m_nGMinuteOfHour = nGMinuteOfHour;
-        m_nGSecondOfMinute = nGSecondOfMinute;
-        m_nGMilliOfSecond = nGMilliOfSecond;
-    }
+    //CChLunarDateTime(const int nGYear,
+    //            const int nGMonthOfYear,
+    //            const int nGDayOfMonth,
+    //            const int nGHourOfDay,
+    //            const int nGMinuteOfHour,
+    //            const int nGSecondOfMinute,
+    //            const int nGMilliOfSecond)
+    //{
+    //    m_nGYear = nGYear;
+    //    m_nGMonthOfYear = nGMonthOfYear;
+    //    m_nGDayOfMonth = nGDayOfMonth;
+    //    m_nHourOfDay = nGHourOfDay;
+    //    m_nMinuteOfHour = nGMinuteOfHour;
+    //    m_nSecondOfMinute = nGSecondOfMinute;
+    //    m_nMilliOfSecond = nGMilliOfSecond;
+    //}
 
-    ~ChLunarDate() = default;
+    ~CChLunarDateTime() = default;
 
 public:
+
+    void 
+    Reset()
+    {
+		m_nTimeIndex = std::numeric_limits<unsigned long long>::max();
+
+		m_nGYear = -1;
+		m_nGMonthOfYear = -1;
+		m_nGDayOfMonth = -1;
+		m_nGDayOfWeek = -1;
+
+		m_nHourOfDay = -1;
+		m_nMinuteOfHour = -1;
+		m_nSecondOfMinute = -1;
+		m_nMilliOfSecond = -1;
+
+		m_nLYear = -1;
+		m_nLMonthOfYear = -1;
+		m_nLDayOfMonth = -1;
+    }
+
+	void
+	SetVal(const unsigned long long nVal)
+	{
+		m_nTimeIndex = nVal;
+	}
+
+    bool
+	Set(const int nGYear, const int nGMonthOfYear, const int nGDayOfMonth)
+	{
+	    m_nGYear = nGYear;
+	    m_nGMonthOfYear = nGMonthOfYear;
+	    m_nGDayOfMonth = nGDayOfMonth;
+
+		m_nHourOfDay = 0;
+		m_nMinuteOfHour = 0;
+		m_nSecondOfMinute = 0;
+		m_nMilliOfSecond = 0;
+
+        if(!CheckGDateTimeValid())
+        {
+			Reset();
+			return false;
+        }
+
+		CalValBaseOnGDateTime();
+		return true;
+	}
 
     constexpr static unsigned int
     GetLVal(const int nGYear)
@@ -294,12 +342,12 @@ public:
         const auto nRemainderMilliSecondDays = (m_nTimeIndex - it->first);
         m_nGDayOfMonth = static_cast<int>(nRemainderMilliSecondDays / s_nMilliSecondIn1Day + 1);
         const auto nRemainderMilliSecondHours = nRemainderMilliSecondDays % s_nMilliSecondIn1Day;
-        m_nGHourOfDay = static_cast<int>(nRemainderMilliSecondHours / s_nMilliSecondIn1Hour);
+        m_nHourOfDay = static_cast<int>(nRemainderMilliSecondHours / s_nMilliSecondIn1Hour);
         const auto nRemainderMilliSecondMinutes = nRemainderMilliSecondHours % s_nMilliSecondIn1Hour;
-        m_nGMinuteOfHour = static_cast<int>(nRemainderMilliSecondMinutes / s_nMilliSecondIn1Minute);
+        m_nMinuteOfHour = static_cast<int>(nRemainderMilliSecondMinutes / s_nMilliSecondIn1Minute);
         const auto nRemainderMilliSecondSeconds = nRemainderMilliSecondMinutes % s_nMilliSecondIn1Minute;
-        m_nGSecondOfMinute = static_cast<int>(nRemainderMilliSecondSeconds / s_nMilliSecondIn1Minute);
-        m_nGMilliOfSecond = static_cast<int>(nRemainderMilliSecondSeconds % s_nMilliSecondIn1Minute);
+        m_nSecondOfMinute = static_cast<int>(nRemainderMilliSecondSeconds / s_nMilliSecondIn1Minute);
+        m_nMilliOfSecond = static_cast<int>(nRemainderMilliSecondSeconds % s_nMilliSecondIn1Minute);
         m_nGDayOfWeek = static_cast<int>((m_nTimeIndex / s_nMilliSecondIn1Day + s_nGDayOfWeek) % 7);
     }
 
@@ -319,33 +367,23 @@ public:
         m_nLDayOfMonth = static_cast<int>(nRemainderMilliSecondDays / s_nMilliSecondIn1Day + 1);
     }
 
-    void
-    SetVal(const unsigned long long nVal)
+    bool
+    CalValBaseOnGDateTime()
     {
-        m_nTimeIndex = nVal;
+        const auto it = s_mapGYM2Day.find(m_nGYear * 100 + m_nGMonthOfYear);
+        if (it == s_mapGYM2Day.end())
+        {
+            return false;
+        }
+        auto nIndex = it->second;
+        nIndex += static_cast<unsigned long long>(m_nGDayOfMonth * s_nMilliSecondIn1Day) + static_cast<
+                unsigned long long>(m_nHourOfDay * s_nMilliSecondIn1Hour) +
+            static_cast<unsigned long long>(m_nMinuteOfHour * s_nMilliSecondIn1Hour) + static_cast<unsigned
+                long long>(m_nMinuteOfHour * s_nMilliSecondIn1Minute)
+            + static_cast<unsigned long long>(m_nMilliOfSecond);
+        SetVal(nIndex);
+        return true;
     }
-
-    //bool
-    //SetVal(const CGDateTime& oGDateTime)
-    //{
-    //    if (!CheckGDateTimeValid(oGDateTime))
-    //    {
-    //        return false;
-    //    }
-    //    const auto it = s_mapGYM2Day.find(oGDateTime.m_nGYear * 100 + oGDateTime.m_nGMonthOfYear);
-    //    if (it == s_mapGYM2Day.end())
-    //    {
-    //        return false;
-    //    }
-    //    auto nIndex = it->second;
-    //    nIndex += static_cast<unsigned long long>(oGDateTime.m_nGDayOfMonth * s_nMilliSecondIn1Day) + static_cast<
-    //            unsigned long long>(oGDateTime.m_nGHourOfDay * s_nMilliSecondIn1Hour) +
-    //        static_cast<unsigned long long>(oGDateTime.m_nGMinuteOfHour * s_nMilliSecondIn1Hour) + static_cast<unsigned
-    //            long long>(oGDateTime.m_nGMinuteOfHour * s_nMilliSecondIn1Minute)
-    //        + static_cast<unsigned long long>(oGDateTime.m_nGMilliOfSecond);
-    //    SetVal(nIndex);
-    //    return true;
-    //}
 
     //bool
     //SetVal(const CLDateTime& oLDateTIme)
@@ -366,40 +404,39 @@ public:
     //}
 
 
-    //static bool
-    //CheckGDateTimeValid()
-    //{
-    //    if (oGDateTime.m_nGYear > s_nMaxGYear || oGDateTime.m_nGYear < s_nMinGYear)
-    //    {
-    //        return false;
-    //    }
-    //    if (oGDateTime.m_nGMonthOfYear < 1 || oGDateTime.m_nGMonthOfYear > s_nMonthIn1GYear)
-    //    {
-    //        return false;
-    //    }
-    //    if (oGDateTime.m_nGDayOfMonth < 1 || oGDateTime.m_nGDayOfMonth > GetGMonthMaxDay(oGDateTime.m_nGMonthOfYear,
-    //                                                                                     oGDateTime.m_nGYear))
-    //    {
-    //        return false;
-    //    }
-    //    if (oGDateTime.m_nGHourOfDay < 0 || oGDateTime.m_nGHourOfDay > s_nHourIn1Day)
-    //    {
-    //        return false;
-    //    }
-    //    if (oGDateTime.m_nGMinuteOfHour < 0 || oGDateTime.m_nGMinuteOfHour > s_nMinuteIn1Hour)
-    //    {
-    //        return false;
-    //    }
-    //    if (oGDateTime.m_nGSecondOfMinute < 0 || oGDateTime.m_nGSecondOfMinute > s_nSecondIn1Minute)
-    //    {
-    //        return false;
-    //    }
-    //    if (oGDateTime.m_nGMilliOfSecond < 0 || oGDateTime.m_nGMilliOfSecond > s_nMilliSecondIn1Second)
-    //    {
-    //        return false;
-    //    }
-    //    return true;
-    //}
+    bool
+    CheckGDateTimeValid() const
+    {
+        if (m_nGYear > s_nMaxGYear || m_nGYear < s_nMinGYear)
+        {
+            return false;
+        }
+        if (m_nGMonthOfYear < 1 || m_nGMonthOfYear > s_nMonthIn1GYear)
+        {
+            return false;
+        }
+        if (m_nGDayOfMonth < 1 || m_nGDayOfMonth > GetGMonthMaxDay(m_nGMonthOfYear, m_nGYear))
+        {
+            return false;
+        }
+        if (m_nHourOfDay < 0 || m_nHourOfDay > s_nHourIn1Day)
+        {
+            return false;
+        }
+        if (m_nMinuteOfHour < 0 || m_nMinuteOfHour > s_nMinuteIn1Hour)
+        {
+            return false;
+        }
+        if (m_nSecondOfMinute < 0 || m_nSecondOfMinute > s_nSecondIn1Minute)
+        {
+            return false;
+        }
+        if (m_nMilliOfSecond < 0 || m_nMilliOfSecond > s_nMilliSecondIn1Second)
+        {
+            return false;
+        }
+        return true;
+    }
 
     std::string
     GDateTimeToString() const
@@ -427,13 +464,13 @@ public:
         str += "dayOfWeek[";
         str += std::to_string(m_nGDayOfWeek) + "] ";
         str += "hourOfDay[";
-        str += std::to_string(m_nGHourOfDay) + "] \n";
+        str += std::to_string(m_nHourOfDay) + "] \n";
         str += "minuteOfHour[";
-        str += std::to_string(m_nGMinuteOfHour) + "] ";
+        str += std::to_string(m_nMinuteOfHour) + "] ";
         str += "secondOfMinute[";
-        str += std::to_string(m_nGSecondOfMinute) + "] ";
+        str += std::to_string(m_nSecondOfMinute) + "] ";
         str += "milliOfSecond[";
-        str += std::to_string(m_nGMilliOfSecond) + "] \n";
+        str += std::to_string(m_nMilliOfSecond) + "] \n";
         return str;
     }
 
@@ -475,34 +512,35 @@ public:
     }
 
 public:
-    unsigned long long m_nTimeIndex = 0;
+    unsigned long long m_nTimeIndex = std::numeric_limits<unsigned long long>::max();
 
-    int m_nGYear = 0;
-    int m_nGMonthOfYear = 0;
-    int m_nGDayOfMonth = 0;
-    int m_nGDayOfWeek = 0;
-    int m_nGHourOfDay = 0;
-    int m_nGMinuteOfHour = 0;
-    int m_nGSecondOfMinute = 0;
-    int m_nGMilliOfSecond = 0;
+    int m_nGYear = -1;
+    int m_nGMonthOfYear = -1;
+    int m_nGDayOfMonth = -1;
+    int m_nGDayOfWeek = -1;
 
-    int m_nLYear = 0;
-    int m_nLMonthOfYear = 0;
-    int m_nLDayOfMonth = 0;
+    int m_nHourOfDay = -1;
+    int m_nMinuteOfHour = -1;
+    int m_nSecondOfMinute = -1;
+    int m_nMilliOfSecond = -1;
+
+    int m_nLYear = -1;
+    int m_nLMonthOfYear = -1;
+    int m_nLDayOfMonth = -1;
 
     static std::map<unsigned long long, std::tuple<int, int>> s_mapGday2Ym;
     static std::map<unsigned long long, std::tuple<int, int>> s_mapLday2Ym;
     static std::map<int, unsigned long long>                  s_mapGYM2Day;
     static std::map<int, unsigned long long>                  s_mapLYM2Day;
 
-    static constexpr int s_nGYear = 2018;
-    static constexpr int s_nGMonth = 6;
-    static constexpr int s_nGDayOfMonth = 30;
-    static constexpr int s_nGDayOfWeek = 6;
+    static constexpr int s_nGYear = 1970;
+    static constexpr int s_nGMonth = 1;
+    static constexpr int s_nGDayOfMonth = 1;
+    static constexpr int s_nGDayOfWeek = 4;
 
-    static constexpr int s_nLYear = 0;
-    static constexpr int s_nLMonth = 5;
-    static constexpr int s_nLDayOfMont = 17;
+    static constexpr int s_nLYear = s_nGYear + 2697;
+    static constexpr int s_nLMonth = 11;
+    static constexpr int s_nLDayOfMont = 24;
 
     static constexpr int s_nMilliSecondIn1Second = 1000;
     static constexpr int s_nSecondIn1Minute = 60;
@@ -514,11 +552,11 @@ public:
     static constexpr int s_nMilliSecondIn1Hour = s_nMilliSecondIn1Minute * s_nMinuteIn1Hour;
     static constexpr int s_nMilliSecondIn1Day = s_nMilliSecondIn1Hour * s_nHourIn1Day;
 
-    static constexpr int s_nMinGYear = 1900;
-    static constexpr int s_nMaxGYear = 2100;
+    static constexpr int s_nMinGYear = 1970;
+    static constexpr int s_nMaxGYear = 2037;
 };
 
-std::map<unsigned long long, std::tuple<int, int>> ChLunarDate::s_mapGday2Ym;
-std::map<unsigned long long, std::tuple<int, int>> ChLunarDate::s_mapLday2Ym;
-std::map<int, unsigned long long>                  ChLunarDate::s_mapGYM2Day;
-std::map<int, unsigned long long>                  ChLunarDate::s_mapLYM2Day;
+std::map<unsigned long long, std::tuple<int, int>> CChLunarDateTime::s_mapGday2Ym;
+std::map<unsigned long long, std::tuple<int, int>> CChLunarDateTime::s_mapLday2Ym;
+std::map<int, unsigned long long>                  CChLunarDateTime::s_mapGYM2Day;
+std::map<int, unsigned long long>                  CChLunarDateTime::s_mapLYM2Day;
