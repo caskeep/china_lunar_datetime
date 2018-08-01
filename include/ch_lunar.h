@@ -73,9 +73,27 @@ public:
     void
     SetVal(const unsigned long long nVal) {
         m_nTimeIndex = nVal;
-
+        if (!CheckVal()) {
+            Reset();
+            return;
+        }
         CalGDateTime();
         CalLDateTime();
+    }
+
+    bool
+    CheckVal() const {
+        auto nGBegin = s_mapGday2Ym.cbegin()->first;
+        auto nGEnd = s_mapGday2Ym.cend()->first;
+        if (m_nTimeIndex < nGBegin || m_nTimeIndex > nGEnd) {
+            return false;
+        }
+        auto nLBegin = s_mapLday2Ym.cbegin()->first;
+        auto nLEnd = s_mapLday2Ym.cend()->first;
+        if (m_nTimeIndex < nLBegin || m_nTimeIndex > nLEnd) {
+            return false;
+        }
+        return true;
     }
 
     bool
@@ -95,6 +113,7 @@ public:
         }
 
         CalValBaseOnGDateTime();
+        CalDayOfWeekOnVal();
         return true;
     }
 
@@ -144,9 +163,9 @@ public:
         int nGDayOfMonth = s_nGDayOfMonth;
         int nGYear = s_nGYear;
         int nGMonthDayMax = GetGMonthMaxDay(nGMonthOfYear, nGYear);
-        const auto nMaxMilli = static_cast<unsigned long long>(s_nFullMilliSec);
-        while (nIndex < nMaxMilli) {
-            nIndex += s_nMilliSecondIn1Day;
+        s_mapGday2Ym[0] = std::make_tuple(nGYear, nGMonthOfYear);
+        while (nGYear < s_nMaxGYear) {
+            nIndex += 1; //s_nMilliSecondIn1Day;
             ++nGDayOfMonth;
             if (nGDayOfMonth > nGMonthDayMax) {
                 nGDayOfMonth = 1;
@@ -326,14 +345,22 @@ public:
         if (it == s_mapGYM2Day.end()) {
             return false;
         }
-        auto nIndex = it->second;
-        nIndex += static_cast<unsigned long long>(m_nGDayOfMonth * s_nMilliSecondIn1Day) + static_cast<
+        m_nTimeIndex = it->second;
+        m_nTimeIndex += static_cast<unsigned long long>((m_nGDayOfMonth - 1) * s_nMilliSecondIn1Day) + static_cast<
                 unsigned long long>(m_nHourOfDay * s_nMilliSecondIn1Hour) +
-                  static_cast<unsigned long long>(m_nMinuteOfHour * s_nMilliSecondIn1Hour) + static_cast<unsigned
+                        static_cast<unsigned long long>(m_nMinuteOfHour * s_nMilliSecondIn1Hour) + static_cast<unsigned
         long long>(m_nMinuteOfHour * s_nMilliSecondIn1Minute)
-                  + static_cast<unsigned long long>(m_nMilliOfSecond);
-        SetVal(nIndex);
+                        + static_cast<unsigned long long>(m_nMilliOfSecond);
         return true;
+    }
+
+    bool
+    CalDayOfWeekOnVal() {
+        m_nGDayOfWeek =
+                ((m_nTimeIndex + static_cast<unsigned long long>(s_nGDayOfWeek) *
+                                 static_cast<unsigned long long>(s_nMilliSecondIn1Day)) %
+                 static_cast<unsigned long long>(s_nMilliSecondIn1Week)) /
+                static_cast<unsigned long long>(s_nMilliSecondIn1Day);
     }
 
     //bool
@@ -381,6 +408,11 @@ public:
         return true;
     }
 
+    unsigned long long
+    GetVal() const {
+        return m_nTimeIndex;
+    }
+
     std::string
     LDateTimeToString() const {
         std::string str;
@@ -411,7 +443,9 @@ public:
         str += "secondOfMinute[";
         str += std::to_string(m_nSecondOfMinute) + "] ";
         str += "milliOfSecond[";
-        str += std::to_string(m_nMilliOfSecond) + "] \n";
+        str += std::to_string(m_nMilliOfSecond) + "] ";
+        str += "val[";
+        str += std::to_string(m_nTimeIndex) + "] \n";
         return str;
     }
 
@@ -483,10 +517,12 @@ public:
     static constexpr int s_nMinuteIn1Hour = 60;
     static constexpr int s_nHourIn1Day = 24;
     static constexpr int s_nMonthIn1GYear = 12;
+    static constexpr int s_nDayIn1Week = 7;
 
     static constexpr int s_nMilliSecondIn1Minute = s_nMilliSecondIn1Second * s_nSecondIn1Minute;
     static constexpr int s_nMilliSecondIn1Hour = s_nMilliSecondIn1Minute * s_nMinuteIn1Hour;
     static constexpr int s_nMilliSecondIn1Day = s_nMilliSecondIn1Hour * s_nHourIn1Day;
+    static constexpr int s_nMilliSecondIn1Week = s_nMilliSecondIn1Day * s_nDayIn1Week;
 
     static constexpr int s_nMinGYear = 1970;
     static constexpr int s_nMaxGYear = 2037;
