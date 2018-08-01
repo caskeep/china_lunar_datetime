@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
-
+cmake_minimum_required(VERSION 3.0)
 if (CYGWIN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 else()
@@ -19,5 +18,5 @@ target_include_directories(${PROJECT_NAME}
         ${PROJECT_SOURCE_DIR}/include
 )
 
-add_executable(test test/main.cpp)
-target_link_libraries(test lib::ch_lunar)
+add_executable(ut_test test/main.cpp)
+target_link_libraries(ut_test lib::ch_lunar)
