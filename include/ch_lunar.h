@@ -165,7 +165,7 @@ public:
         int nGMonthDayMax = GetGMonthMaxDay(nGMonthOfYear, nGYear);
         s_mapGday2Ym[0] = std::make_tuple(nGYear, nGMonthOfYear);
         while (nGYear < s_nMaxGYear) {
-            nIndex += 1; //s_nMilliSecondIn1Day;
+            nIndex += s_nMilliSecondIn1Day;
             ++nGDayOfMonth;
             if (nGDayOfMonth > nGMonthDayMax) {
                 nGDayOfMonth = 1;
@@ -251,10 +251,14 @@ public:
             nGMonth == 12) {
             return 31;
         }
-        if (nGMonth == 2 && IsLeapGYear(nGYear)) {
+        if (nGMonth != 2)
+        {
+            return 30;
+        }
+        if (IsLeapGYear(nGYear)) {
             return 29;
         }
-        return 30;
+        return 28;
     }
 
     static std::map<int, int>
