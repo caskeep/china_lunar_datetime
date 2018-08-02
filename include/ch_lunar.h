@@ -170,11 +170,11 @@ public:
             if (nGDayOfMonth > nGMonthDayMax) {
                 nGDayOfMonth = 1;
                 ++nGMonthOfYear;
-                nGMonthDayMax = GetGMonthMaxDay(nGMonthOfYear, nGYear);
                 if (nGMonthOfYear > 12) {
                     nGMonthOfYear = 1;
                     ++nGYear;
                 }
+                nGMonthDayMax = GetGMonthMaxDay(nGMonthOfYear, nGYear);
                 s_mapGday2Ym[nIndex] = std::make_tuple(nGYear, nGMonthOfYear);
             }
         }
@@ -251,8 +251,7 @@ public:
             nGMonth == 12) {
             return 31;
         }
-        if (nGMonth != 2)
-        {
+        if (nGMonth != 2) {
             return 30;
         }
         if (IsLeapGYear(nGYear)) {
@@ -351,9 +350,12 @@ public:
         }
         m_nTimeIndex = it->second;
         m_nTimeIndex += static_cast<unsigned long long>(m_nGDayOfMonth - 1) * s_nMilliSecondIn1Day;
-        m_nTimeIndex += static_cast<unsigned long long>(m_nHourOfDay) * static_cast<unsigned long long>(s_nMilliSecondIn1Hour);
-        m_nTimeIndex += static_cast<unsigned long long>(m_nMinuteOfHour) * static_cast<unsigned long long>(s_nMilliSecondIn1Hour);
-        m_nTimeIndex += static_cast<unsigned long long>(m_nSecondOfMinute) * static_cast<unsigned long long>(s_nMilliSecondIn1Minute);
+        m_nTimeIndex +=
+                static_cast<unsigned long long>(m_nHourOfDay) * static_cast<unsigned long long>(s_nMilliSecondIn1Hour);
+        m_nTimeIndex += static_cast<unsigned long long>(m_nMinuteOfHour) *
+                        static_cast<unsigned long long>(s_nMilliSecondIn1Hour);
+        m_nTimeIndex += static_cast<unsigned long long>(m_nSecondOfMinute) *
+                        static_cast<unsigned long long>(s_nMilliSecondIn1Minute);
         m_nTimeIndex += static_cast<unsigned long long>(m_nMilliOfSecond);
 
 //        m_nTimeIndex += static_cast<unsigned long long>((m_nGDayOfMonth - 1) * s_nMilliSecondIn1Day)
@@ -463,13 +465,18 @@ public:
     StaticDataToString() {
         std::string str;
         str += "s_mapGday2Ym \n";
+        unsigned long long nTmp = 0;
         for (const auto &pair : s_mapGday2Ym) {
             auto &nIndex = pair.first;
             auto &tupYm = pair.second;
             const auto nGYear = std::get<0>(tupYm);
             const auto nGMonth = std::get<1>(tupYm);
-            str += "index[" + std::to_string(nIndex) + "] gyear,gmonth[" + std::to_string(nGYear) + "," + std::
-            to_string(nGMonth) + "]" + "\n";
+            nTmp = nIndex - nTmp;
+            str += "index[" + std::to_string(nIndex) + "] add[" + std::to_string(nTmp / s_nMilliSecondIn1Day) +
+                   "] gyear,gmonth[" +
+                   std::to_string(nGYear) + "," + std::
+                   to_string(nGMonth) + "]" + "\n";
+            nTmp = nIndex;
         }
         str += "s_mapLday2Ym \n";
         for (const auto &pair : s_mapLday2Ym) {
@@ -477,8 +484,11 @@ public:
             auto &tupYm = pair.second;
             const auto nGYear = std::get<0>(tupYm);
             const auto nGMonth = std::get<1>(tupYm);
-            str += "index[" + std::to_string(nIndex) + "] lyear,lmonth[" + std::to_string(nGYear) + "," + std::
-            to_string(nGMonth) + "]" + "\n";
+            str += "index[" + std::to_string(nIndex) + "] add[" + std::to_string(nTmp / s_nMilliSecondIn1Day) +
+                   "] lyear,lmonth[" +
+                   std::to_string(nGYear) + "," + std::
+                   to_string(nGMonth) + "]" + "\n";
+            nTmp = nIndex;
         }
         str += "s_mapGYM2Day \n";
         for (const auto &pair : s_mapGYM2Day) {
