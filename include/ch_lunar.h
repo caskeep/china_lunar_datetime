@@ -114,6 +114,7 @@ public:
 
         CalValBaseOnGDateTime();
         CalDayOfWeekOnVal();
+        CalLDateTime();
         return true;
     }
 
@@ -186,7 +187,7 @@ public:
         int nLMonthOfYear = s_nLMonth;
         int nLDayOfMonth = s_nLDayOfMont;
         int nLYear = s_nLYear;
-        int nGYear = s_nGYear;
+        int nGYear = s_nGYear - 1;
         auto mapLYearMonthDayCount = GetLYearMonthDayMap(nGYear);
         int nLMonthDayMax = mapLYearMonthDayCount[nLMonthOfYear];
         if (nLMonthDayMax == 0) {
@@ -478,16 +479,18 @@ public:
                    to_string(nGMonth) + "]" + "\n";
             nTmp = nIndex;
         }
+        nTmp = 0;
         str += "s_mapLday2Ym \n";
         for (const auto &pair : s_mapLday2Ym) {
             auto &nIndex = pair.first;
             auto &tupYm = pair.second;
-            const auto nGYear = std::get<0>(tupYm);
-            const auto nGMonth = std::get<1>(tupYm);
+            const auto nLYear = std::get<0>(tupYm);
+            const auto nLMonth = std::get<1>(tupYm);
+            nTmp = nIndex - nTmp;
             str += "index[" + std::to_string(nIndex) + "] add[" + std::to_string(nTmp / s_nMilliSecondIn1Day) +
                    "] lyear,lmonth[" +
-                   std::to_string(nGYear) + "," + std::
-                   to_string(nGMonth) + "]" + "\n";
+                   std::to_string(nLYear) + "," + std::
+                   to_string(nLMonth) + "]" + "\n";
             nTmp = nIndex;
         }
         str += "s_mapGYM2Day \n";
@@ -528,7 +531,7 @@ public:
     static constexpr int s_nGDayOfMonth = 1;
     static constexpr int s_nGDayOfWeek = 4;
 
-    static constexpr int s_nLYear = s_nGYear + 2697;
+    static constexpr int s_nLYear = s_nGYear - 1; //s_nGYear + 2697;
     static constexpr int s_nLMonth = 11;
     static constexpr int s_nLDayOfMont = 24;
 
@@ -544,8 +547,8 @@ public:
     static constexpr int s_nMilliSecondIn1Day = s_nMilliSecondIn1Hour * s_nHourIn1Day;
     static constexpr int s_nMilliSecondIn1Week = s_nMilliSecondIn1Day * s_nDayIn1Week;
 
-    static constexpr int s_nMinGYear = 1970;
-    static constexpr int s_nMaxGYear = 2037;
+    static constexpr int s_nMinGYear = 1900;
+    static constexpr int s_nMaxGYear = 2100;
 
     static constexpr unsigned long long s_nFullMilliSec = (static_cast<unsigned long long>(s_nMaxGYear) -
                                                            static_cast<unsigned long long>(s_nMinGYear)) * 365u *
