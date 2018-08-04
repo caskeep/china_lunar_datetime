@@ -374,6 +374,7 @@ public:
                                  static_cast<unsigned long long>(s_nMilliSecondIn1Day)) %
                  static_cast<unsigned long long>(s_nMilliSecondIn1Week)) /
                 static_cast<unsigned long long>(s_nMilliSecondIn1Day);
+		return true;
     }
 
     //bool
