@@ -118,6 +118,29 @@ public:
         return true;
     }
 
+    bool
+    Set(const int nGYear, const int nGMonthOfYear, const int nGDayOfMonth,
+        const int nHourOfDay, const int nMinuteOfHour, const int nSecondOfMinute, const int nMilliOfSecond) {
+        m_nGYear = nGYear;
+        m_nGMonthOfYear = nGMonthOfYear;
+        m_nGDayOfMonth = nGDayOfMonth;
+
+        m_nHourOfDay = nHourOfDay;
+        m_nMinuteOfHour = nMinuteOfHour;
+        m_nSecondOfMinute = nSecondOfMinute;
+        m_nMilliOfSecond = nMilliOfSecond;
+
+        if (!CheckGDateTimeValid()) {
+            Reset();
+            return false;
+        }
+
+        CalValBaseOnGDateTime();
+        CalDayOfWeekOnVal();
+        CalLDateTime();
+        return true;
+    }
+
     static unsigned int
     GetLVal(const int nGYear) {
         if (nGYear > 200 + s_nMinGYear || nGYear < s_nMinGYear) {
@@ -351,12 +374,12 @@ public:
         }
         m_nTimeIndex = it->second;
         m_nTimeIndex += static_cast<unsigned long long>(m_nGDayOfMonth - 1) * s_nMilliSecondIn1Day;
-        m_nTimeIndex +=
-                static_cast<unsigned long long>(m_nHourOfDay) * static_cast<unsigned long long>(s_nMilliSecondIn1Hour);
-        m_nTimeIndex += static_cast<unsigned long long>(m_nMinuteOfHour) *
-                        static_cast<unsigned long long>(s_nMilliSecondIn1Hour);
-        m_nTimeIndex += static_cast<unsigned long long>(m_nSecondOfMinute) *
-                        static_cast<unsigned long long>(s_nMilliSecondIn1Minute);
+        const auto nTmpHour = static_cast<unsigned long long>(m_nHourOfDay) * s_nMilliSecondIn1Hour;
+        m_nTimeIndex += nTmpHour;
+        const auto nTmpMinute = static_cast<unsigned long long>(m_nMinuteOfHour) * s_nMilliSecondIn1Minute;
+        m_nTimeIndex += nTmpMinute;
+        const auto nTmpSecond = static_cast<unsigned long long>(m_nSecondOfMinute) * s_nMilliSecondIn1Second;
+        m_nTimeIndex += nTmpSecond;
         m_nTimeIndex += static_cast<unsigned long long>(m_nMilliOfSecond);
 
 //        m_nTimeIndex += static_cast<unsigned long long>((m_nGDayOfMonth - 1) * s_nMilliSecondIn1Day)
@@ -370,11 +393,8 @@ public:
     bool
     CalDayOfWeekOnVal() {
         m_nGDayOfWeek =
-                ((m_nTimeIndex + static_cast<unsigned long long>(s_nGDayOfWeek) *
-                                 static_cast<unsigned long long>(s_nMilliSecondIn1Day)) %
-                 static_cast<unsigned long long>(s_nMilliSecondIn1Week)) /
-                static_cast<unsigned long long>(s_nMilliSecondIn1Day);
-		return true;
+                ( (m_nTimeIndex + s_nGDayOfWeek *s_nMilliSecondIn1Day) % s_nMilliSecondIn1Week ) / s_nMilliSecondIn1Day;
+        return true;
     }
 
     //bool
@@ -527,29 +547,29 @@ public:
     static std::map<int, unsigned long long> s_mapGYM2Day;
     static std::map<int, unsigned long long> s_mapLYM2Day;
 
-    static constexpr int s_nGYear = 1970;
-    static constexpr int s_nGMonth = 1;
-    static constexpr int s_nGDayOfMonth = 1;
-    static constexpr int s_nGDayOfWeek = 4;
+    static constexpr unsigned long long s_nGYear = 1970;
+    static constexpr unsigned long long s_nGMonth = 1;
+    static constexpr unsigned long long s_nGDayOfMonth = 1;
+    static constexpr unsigned long long s_nGDayOfWeek = 4;
 
-    static constexpr int s_nLYear = s_nGYear - 1; //s_nGYear + 2697;
-    static constexpr int s_nLMonth = 11;
-    static constexpr int s_nLDayOfMont = 24;
+    static constexpr unsigned long long s_nLYear = s_nGYear - 1; //s_nGYear + 2697;
+    static constexpr unsigned long long s_nLMonth = 11;
+    static constexpr unsigned long long s_nLDayOfMont = 24;
 
-    static constexpr int s_nMilliSecondIn1Second = 1000;
-    static constexpr int s_nSecondIn1Minute = 60;
-    static constexpr int s_nMinuteIn1Hour = 60;
-    static constexpr int s_nHourIn1Day = 24;
-    static constexpr int s_nMonthIn1GYear = 12;
-    static constexpr int s_nDayIn1Week = 7;
+    static constexpr unsigned long long s_nMilliSecondIn1Second = 1000;
+    static constexpr unsigned long long s_nSecondIn1Minute = 60;
+    static constexpr unsigned long long s_nMinuteIn1Hour = 60;
+    static constexpr unsigned long long s_nHourIn1Day = 24;
+    static constexpr unsigned long long s_nMonthIn1GYear = 12;
+    static constexpr unsigned long long s_nDayIn1Week = 7;
 
-    static constexpr int s_nMilliSecondIn1Minute = s_nMilliSecondIn1Second * s_nSecondIn1Minute;
-    static constexpr int s_nMilliSecondIn1Hour = s_nMilliSecondIn1Minute * s_nMinuteIn1Hour;
-    static constexpr int s_nMilliSecondIn1Day = s_nMilliSecondIn1Hour * s_nHourIn1Day;
-    static constexpr int s_nMilliSecondIn1Week = s_nMilliSecondIn1Day * s_nDayIn1Week;
+    static constexpr unsigned long long s_nMilliSecondIn1Minute = s_nMilliSecondIn1Second * s_nSecondIn1Minute;
+    static constexpr unsigned long long s_nMilliSecondIn1Hour = s_nMilliSecondIn1Minute * s_nMinuteIn1Hour;
+    static constexpr unsigned long long s_nMilliSecondIn1Day = s_nMilliSecondIn1Hour * s_nHourIn1Day;
+    static constexpr unsigned long long s_nMilliSecondIn1Week = s_nMilliSecondIn1Day * s_nDayIn1Week;
 
-    static constexpr int s_nMinGYear = 1900;
-    static constexpr int s_nMaxGYear = 2100;
+    static constexpr unsigned long long s_nMinGYear = 1900;
+    static constexpr unsigned long long s_nMaxGYear = 2100;
 
     static constexpr unsigned long long s_nFullMilliSec = (static_cast<unsigned long long>(s_nMaxGYear) -
                                                            static_cast<unsigned long long>(s_nMinGYear)) * 365u *

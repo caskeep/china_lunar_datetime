@@ -5,24 +5,49 @@
 #include "ch_lunar.h"
 
 int
-main(int argc, char* argv[])
-{
-    std::cout << "## Class ChLunarDate Test build map." << std::endl;
+main(int argc, char *argv[]) {
 
-    CChLunarDateTime::Init();
-    std::cout << CChLunarDateTime::StaticDataToString();
-    const auto tmp = static_cast<unsigned long long>(86400000u) * static_cast<unsigned long long>(13u) +
-                     static_cast<unsigned long long>(1u);
-    CChLunarDateTime chLunarDate1;
-    chLunarDate1.Set(2018, 8, 1);
-    //chLunarDate1.Set(2018, 8, 1);
-    std::cout << "tostring: " << chLunarDate1.GDateTimeToString();
-    std::cout << "tostring: " << chLunarDate1.LDateTimeToString();
 
-    const auto nVal1 = chLunarDate1.GetVal();
-    CChLunarDateTime chLunarDate2;
-    chLunarDate2.SetVal(nVal1);
-    std::cout << "tostring: " << chLunarDate2.GDateTimeToString();
-    std::cout << "tostring: " << chLunarDate2.LDateTimeToString();
+    {
+        std::cout << "## Class ChLunarDate Test build map." << std::endl;
+        CChLunarDateTime::Init();
+//    std::cout << CChLunarDateTime::StaticDataToString();
+//    const auto tmp = static_cast<unsigned long long>(86400000u) * static_cast<unsigned long long>(13u) +
+//                     static_cast<unsigned long long>(1u);
+        CChLunarDateTime chLunarDate1;
+        chLunarDate1.Set(2018, 8, 1);
+        std::cout << "tostring: " << chLunarDate1.GDateTimeToString();
+        std::cout << "tostring: " << chLunarDate1.LDateTimeToString();
+
+        const auto nVal1 = chLunarDate1.GetVal();
+        CChLunarDateTime chLunarDate2;
+        chLunarDate2.SetVal(nVal1);
+        std::cout << std::endl;
+        std::cout << "tostring: " << chLunarDate2.GDateTimeToString();
+        std::cout << "tostring: " << chLunarDate2.LDateTimeToString();
+    }
+
+    {
+        std::cout << std::endl;
+        std::cout << std::endl;
+        std::cout << std::endl;
+        std::cout << "## Class ChLunarDate Test build map." << std::endl;
+        CChLunarDateTime::Init();
+//    std::cout << CChLunarDateTime::StaticDataToString();
+//    const auto tmp = static_cast<unsigned long long>(86400000u) * static_cast<unsigned long long>(13u) +
+//                     static_cast<unsigned long long>(1u);
+        CChLunarDateTime chLunarDate1;
+        chLunarDate1.Set(2018, 8, 1, 23 ,59 ,59, 999);
+        std::cout << "tostring: " << chLunarDate1.GDateTimeToString();
+        std::cout << "tostring: " << chLunarDate1.LDateTimeToString();
+
+        const auto nVal1 = chLunarDate1.GetVal();
+        CChLunarDateTime chLunarDate2;
+        chLunarDate2.SetVal(nVal1);
+        std::cout << "tostring: " << chLunarDate2.GDateTimeToString();
+        std::cout << "tostring: " << chLunarDate2.LDateTimeToString();
+
+    }
+
     return 0;
 }

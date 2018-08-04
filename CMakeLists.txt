@@ -18,5 +18,9 @@ target_include_directories(${PROJECT_NAME}
         ${PROJECT_SOURCE_DIR}/include
 )
 
-add_executable(ut_test test/main.cpp)
-target_link_libraries(ut_test lib::ch_lunar)
+add_executable(ut_test_debug test/main.cpp)
+target_link_libraries(ut_test_debug lib::ch_lunar)
+
+#add_executable(ut_test_release test/main.cpp)
+#target_compile_definitions(ut_test_release PRIVATE -Werror)
+#target_link_libraries(ut_test_release lib::ch_lunar)
