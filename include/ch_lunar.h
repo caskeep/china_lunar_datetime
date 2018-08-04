@@ -84,12 +84,12 @@ public:
     bool
     CheckVal() const {
         auto nGBegin = s_mapGday2Ym.cbegin()->first;
-        auto nGEnd = s_mapGday2Ym.cend()->first;
+        auto nGEnd = s_mapGday2Ym.crbegin()->first;
         if (m_nTimeIndex < nGBegin || m_nTimeIndex > nGEnd) {
             return false;
         }
         auto nLBegin = s_mapLday2Ym.cbegin()->first;
-        auto nLEnd = s_mapLday2Ym.cend()->first;
+        auto nLEnd = s_mapLday2Ym.crbegin()->first;
         if (m_nTimeIndex < nLBegin || m_nTimeIndex > nLEnd) {
             return false;
         }
@@ -332,7 +332,7 @@ public:
 
     void
     CalGDateTime() {
-        auto it = s_mapGday2Ym.lower_bound(m_nTimeIndex);
+        auto it = s_mapGday2Ym.upper_bound(m_nTimeIndex);
         if (it == s_mapGday2Ym.end() || it == s_mapGday2Ym.begin()) {
             return;
         }
@@ -354,7 +354,7 @@ public:
 
     void
     CalLDateTime() {
-        auto it = s_mapLday2Ym.lower_bound(m_nTimeIndex);
+        auto it = s_mapLday2Ym.upper_bound(m_nTimeIndex);
         if (it == s_mapLday2Ym.end() || it == s_mapLday2Ym.begin()) {
             return;
         }
